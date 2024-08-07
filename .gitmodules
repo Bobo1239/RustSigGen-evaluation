@@ -1,0 +1,9 @@
+[submodule "oss_projects/ripgrep"]
+	path = oss_projects/ripgrep
+	url = https://github.com/BurntSushi/ripgrep.git
+[submodule "oss_projects/just"]
+	path = oss_projects/just
+	url = https://github.com/casey/just.git
+[submodule "oss_projects/resvg"]
+	path = oss_projects/resvg
+	url = https://github.com/RazrFalcon/resvg.git

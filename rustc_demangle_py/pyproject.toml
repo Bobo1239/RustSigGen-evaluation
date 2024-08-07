@@ -1,0 +1,13 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "rustc_demangle_py"
+requires-python = ">=3.8"
+dynamic = ["version"]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+
+# Use `maturin develop --uv` for debugging purposes. (no pip installed in venv)
