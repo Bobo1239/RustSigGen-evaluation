@@ -1,8 +1,14 @@
-[tool.uv]
-dev-dependencies = [
+[project]
+name = "samples"
+version = "0.0.0"
+dependencies = [
+    "rustc_demangle_py",
     "requests>=2.32.3",
     "pyzipper>=0.3.6",
 ]
+
+[tool.uv.sources]
+rustc_demangle_py = { workspace = true }
 
 [tool.uv.workspace]
 members = ["rustc_demangle_py"]
