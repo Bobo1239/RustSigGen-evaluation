@@ -150,6 +150,15 @@ wheels = [
 ]
 
 [[package]]
+name = "qasync"
+version = "0.27.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/e0/7c7c973f52e1765d6ddfc41e9272294f65d5d52b8f5f5eae92adf411ad46/qasync-0.27.1.tar.gz", hash = "sha256:8dc768fd1ee5de1044c7c305eccf2d39d24d87803ea71189d4024fb475f4985f", size = 14287 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/51/06/bc628aa2981bcfd452a08ee435b812fd3eee4ada8acb8a76c4a09d1a5a77/qasync-0.27.1-py3-none-any.whl", hash = "sha256:5d57335723bc7d9b328dadd8cb2ed7978640e4bf2da184889ce50ee3ad2602c7", size = 14866 },
+]
+
+[[package]]
 name = "requests"
 version = "2.32.3"
 source = { registry = "https://pypi.org/simple" }
@@ -175,6 +184,7 @@ version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "pyzipper" },
+    { name = "qasync" },
     { name = "requests" },
     { name = "rustc-demangle-py" },
 ]
@@ -182,6 +192,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "pyzipper", specifier = ">=0.3.6" },
+    { name = "qasync", specifier = ">=0.27.1" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "rustc-demangle-py", editable = "rustc_demangle_py" },
 ]

@@ -5,6 +5,8 @@ dependencies = [
     "rustc_demangle_py",
     "requests>=2.32.3",
     "pyzipper>=0.3.6",
+    # Only needed since IDA now picks up our venv and our plugin needs qasync...
+    "qasync>=0.27.1",
 ]
 
 [tool.uv.sources]
