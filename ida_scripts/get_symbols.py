@@ -64,10 +64,11 @@ class IdpHook(ida_idp.IDP_Hooks):
 
     def ev_auto_queue_empty(self, typee):
         if self.first:
-            # Unfortunately we can't call this directly after registering our IdpHook since the
-            # action isn't available at that moment for some reason...
-            ida_kernwin.process_ui_action("Edit/Plugins/Rust Signature Generator")
-            self.first = False
+            if typee == ida_auto.AU_FINAL:
+                # Unfortunately we can't call this directly after registering our IdpHook since the
+                # action isn't available at that moment for some reason...
+                ida_kernwin.process_ui_action("Edit/Plugins/Rust Signature Generator")
+                self.first = False
         else:
             if typee == ida_auto.AU_CHLB:  # load signature file
                 after = get_all_functions()
