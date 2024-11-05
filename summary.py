@@ -66,6 +66,8 @@ for unstripped, stripped in binaries.items():
     #     continue
     # if unstripped != "target/1.80.0/x86_64-pc-windows-gnu/release/empty.exe":
     #     continue
+    # if unstripped != "target/nightly/x86_64-unknown-linux-gnu/debug/empty":
+    #     continue
     print(unstripped)
     is_msvc = True if stripped.endswith(".pdb") else False
 

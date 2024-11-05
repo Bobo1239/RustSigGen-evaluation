@@ -10,14 +10,15 @@ import ida_segment
 import idautils
 import idc
 
-# ida64 -c -A -S"$(pwd)/ida_evaluation.py $(pwd)/out.txt match" /path/to/bin
+# ida -c -A -S"$(pwd)/get_symbols.py $(pwd)/out.txt match" /path/to/bin
 
-# NOTE: Can't use `idat64` since our plugin depends on the Qt event loop
+# NOTE: Can't use `idat` since our plugin depends on the Qt event loop
 # NOTE: Disable Lumina in IDA's settings so we don't depend on external (non-deterministic) data
 
 if len(idc.ARGV) > 1:
     # Batch mode
     f = open(idc.ARGV[1], "w")
+    # TODO: Another mode: force use sig
     do_matching = idc.ARGV[2] == "match"
 else:
     # Interactive mode
@@ -59,27 +60,31 @@ def get_all_functions():
 class IdpHook(ida_idp.IDP_Hooks):
     def __init__(self):
         super().__init__()
+        self.first = True
 
     def ev_auto_queue_empty(self, typee):
-        if typee == ida_auto.AU_CHLB:  # load signature file
-            after = get_all_functions()
-            log(json.dumps(after))
-            exit_if_batchmode()
-            self.unhook()
+        if self.first:
+            # Unfortunately we can't call this directly after registering our IdpHook since the
+            # action isn't available at that moment for some reason...
+            ida_kernwin.process_ui_action("Edit/Plugins/Rust Signature Generator")
+            self.first = False
+        else:
+            if typee == ida_auto.AU_CHLB:  # load signature file
+                after = get_all_functions()
+                log(json.dumps(after))
+                exit_if_batchmode()
+                self.unhook()
         return 0
 
 
 # log(ida_nalt.get_input_file_path())
 
-# Wait for initial auto-analysis to complete
-ida_auto.auto_wait()
-
 if do_matching:
     idp_hook = IdpHook()
     idp_hook.hook()
-
-    ida_kernwin.process_ui_action("rust:generate_signatures")
 else:
+    # Wait for initial auto-analysis to complete
+    ida_auto.auto_wait()
     log(json.dumps(get_all_functions()))
     exit_if_batchmode()
 

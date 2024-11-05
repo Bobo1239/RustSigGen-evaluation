@@ -18,10 +18,15 @@ TARGET_PATH = Path("target")
 #       (see https://releases.rs)
 TARGETS = [
     "x86_64-unknown-linux-gnu",
+    # NOTE: MUSL is currently always statically links the libc but this should change in the future: https://github.com/rust-lang/compiler-team/issues/422
+    "x86_64-unknown-linux-musl",
     "x86_64-pc-windows-msvc",
     "x86_64-pc-windows-gnu",
 ]
-VERSIONS = ["1.80.0", "1.79.0", "beta-2024-06-11", "nightly-2024-06-11"]
+VERSIONS = ["1.80.1", "1.79.0", "beta-2024-06-11", "nightly-2024-06-11", "nightly"]
+
+VERSIONS_UNIQUENESS = ["1.80.1", "1.80.0", "1.79.0", "1.78.0", "1.77.2", "1.77.1", "1.77.0"]
+BIN_UNIQUENESS = "empty"
 
 
 def build_and_copy_to_target(crate_dir, version, target, mode, bins, binaries):
@@ -79,6 +84,14 @@ def build_examples(binaries):
                 )
 
 
+def build_examples_uniqueness(binaries):
+    for version in VERSIONS_UNIQUENESS:
+        for mode in ["debug", "release"]:
+            build_and_copy_to_target(
+                Path("examples"), version, TARGETS[0], mode, [BIN_UNIQUENESS], binaries
+            )
+
+
 def build_oss_projects(binaries):
     base_dir = Path("oss_projects")
     projects = [p.name for p in base_dir.glob("*")]
@@ -94,7 +107,7 @@ def build_oss_projects(binaries):
             )
 
 
-# NOTE: Binaires built in a Windows VM
+# NOTE: Binaries built in a Windows VM
 def copy_real_windows_binaries(binaries):
     metadata_json = subprocess.check_output(
         ["cargo", "metadata", "--format-version", "1"],
@@ -107,6 +120,7 @@ def copy_real_windows_binaries(binaries):
         for binary in bins:
             common = f"{mode}/{binary}.exe"
             in_path = Path("prebuilt_binaries") / "real_windows" / "examples" / common
+            # TODO: Update Windows binaries to 1.80.1
             # NOTE: real_windows used Rust 1.80.0
             out_path = TARGET_PATH / "1.80.0" / "real_windows" / common
 
@@ -129,6 +143,7 @@ def copy_real_windows_binaries(binaries):
 
 def get_malware_samples(binaries):
     # https://github.com/cxiao/rust-malware-gallery
+    # NOTE: Sources to consider: https://bazaar.abuse.ch; https://malshare.com
     MALWARE = [
         (
             "37c52481711631a5c73a6341bd8bea302ad57f02199db7624b580058547fb5a9",
@@ -139,9 +154,17 @@ def get_malware_samples(binaries):
             "blackcat.elf",
         ),
         # NOTE: blackcat.exe is a 32-bit exe which we don't support atm
+        # (
+        #     "7bb383b31d1b415bc067e612203cc6bda53e914f7ca5291299e92f59d47cabf8",
+        #     "blackcat.exe",
+        # ),
         (
             "35d8eb3a18f55806333f187f295df747150048c5cdd011acba9e294fa57ad991",
             "rustystealer.exe",
+        ),
+        (
+            "030eb56e155fb01d7b190866aaa8b3128f935afd0b7a7b2178dc8e2eb84228b0",
+            "krustyloader.elf",
         ),
     ]
     ZIP_PASSWORD = b"infected"
@@ -179,7 +202,7 @@ def prepare_toolchains():
     ]
 
     # Install missing versions
-    missing_versions = set(VERSIONS).difference(installed_versions)
+    missing_versions = (set(VERSIONS) | set(VERSIONS_UNIQUENESS)).difference(installed_versions)
     for version in missing_versions:
         subprocess.check_output(
             ["rustup", "toolchain", "install", version, "--profile", "minimal"]
@@ -207,3 +230,10 @@ get_malware_samples(binaries)
 with open(TARGET_PATH / "binaries.json", "w") as f:
     f.write(json.dumps({str(k): str(v) for k, v in binaries.items()}))
 print(f"Built {len(binaries)} binaries")
+
+binaries_uniqueness = {}
+build_examples_uniqueness(binaries_uniqueness)
+
+with open(TARGET_PATH / "binaries_uniqueness.json", "w") as f:
+    f.write(json.dumps({str(k): str(v) for k, v in binaries_uniqueness.items()}))
+print(f"Built {len(binaries_uniqueness)} binaries (uniqueness)")
