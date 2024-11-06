@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import shutil
 import subprocess
 from io import BytesIO
@@ -24,6 +25,8 @@ TARGETS = [
     "x86_64-unknown-linux-musl",
     "x86_64-pc-windows-msvc",
     "x86_64-pc-windows-gnu",
+    "i686-pc-windows-msvc",
+    "i686-pc-windows-gnu",
 ]
 VERSIONS = ["1.80.1", "1.79.0", "beta-2024-06-11", "nightly-2024-06-11"]
 
@@ -34,7 +37,7 @@ BIN_UNIQUENESS = "empty"
 def build_and_copy_to_target(crate_dir, version, target, mode, bins, binaries):
     bin_ext = ".exe" if "windows" in target else ""
     profile = "release" if mode == "release" else "dev"
-    is_msvc = target == "x86_64-pc-windows-msvc"
+    is_msvc = target.endswith("-msvc")
     cargo_command = [
         "cargo",
         f"+{version}",
@@ -45,7 +48,13 @@ def build_and_copy_to_target(crate_dir, version, target, mode, bins, binaries):
         "--target",
         target,
     ]
-    subprocess.check_output([x for x in cargo_command if x], cwd=crate_dir)
+    # NOTE: If building fails with strange linker errors when targeting MSVC try removing
+    #       cargo-xwin's cache: `rm -r ~/.cache/cargo-xwin/`
+    subprocess.check_call(
+        [x for x in cargo_command if x],
+        cwd=crate_dir,
+        env=dict(os.environ, XWIN_INCLUDE_DEBUG_SYMBOLS="true", XWIN_ARCH="x86,x86_64"),
+    )
 
     for binary in bins:
         common = f"{target}/{mode}/{binary}{bin_ext}"
@@ -169,6 +178,7 @@ def copy_real_windows_binaries(binaries):
 def get_malware_samples(binaries):
     # https://github.com/cxiao/rust-malware-gallery
     # NOTE: Sources to consider: https://bazaar.abuse.ch; https://malshare.com
+    # TODO: Add comments about which target each sample uses
     MALWARE = [
         (
             "37c52481711631a5c73a6341bd8bea302ad57f02199db7624b580058547fb5a9",
@@ -178,11 +188,10 @@ def get_malware_samples(binaries):
             "f8c08d00ff6e8c6adb1a93cd133b19302d0b651afd73ccb54e3b6ac6c60d99c6",
             "blackcat.elf",
         ),
-        # NOTE: blackcat.exe is a 32-bit exe which we don't support atm
-        # (
-        #     "7bb383b31d1b415bc067e612203cc6bda53e914f7ca5291299e92f59d47cabf8",
-        #     "blackcat.exe",
-        # ),
+        (
+            "7bb383b31d1b415bc067e612203cc6bda53e914f7ca5291299e92f59d47cabf8",
+            "blackcat.exe",
+        ),
         (
             "35d8eb3a18f55806333f187f295df747150048c5cdd011acba9e294fa57ad991",
             "rustystealer.exe",
@@ -215,6 +224,8 @@ def get_malware_samples(binaries):
 
 
 def prepare_toolchains():
+    print("Preparing toolchains...")
+
     installed_versions = (
         subprocess.check_output(["rustup", "toolchain", "list"])
         .decode()
