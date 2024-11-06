@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
-from io import BytesIO
-import requests
-import subprocess
 import json
 import shutil
+import subprocess
+from io import BytesIO
+from pathlib import Path
+
+import requests
 from pyzipper import AESZipFile
+from tomlkit.toml_file import TOMLFile
 
 # NOTE: Need to use git version of cargo-xwin until there's a release with https://github.com/rust-cross/cargo-xwin/commit/13af95154fce77793001b29b8afc06b73dd0c879
 #       (`cargo install --git https://github.com/rust-cross/cargo-xwin.git cargo-xwin`)
@@ -23,9 +25,9 @@ TARGETS = [
     "x86_64-pc-windows-msvc",
     "x86_64-pc-windows-gnu",
 ]
-VERSIONS = ["1.80.1", "1.79.0", "beta-2024-06-11", "nightly-2024-06-11", "nightly"]
+VERSIONS = ["1.80.1", "1.79.0", "beta-2024-06-11", "nightly-2024-06-11"]
 
-VERSIONS_UNIQUENESS = ["1.80.1", "1.80.0", "1.79.0", "1.78.0", "1.77.2", "1.77.1", "1.77.0"]
+VERSIONS_UNIQUENESS = ["1.80.1", "1.80.0", "1.79.0", "1.78.0", "1.77.2"]
 BIN_UNIQUENESS = "empty"
 
 
@@ -97,14 +99,37 @@ def build_oss_projects(binaries):
     projects = [p.name for p in base_dir.glob("*")]
     print("OSS Projects:", projects)
 
+    # If Cargo.toml is not in root directory
+    special_toml_paths = {"resvg": "crates/resvg/Cargo.toml"}
+
     for proj in projects:
         for mode in ["debug", "release"]:
             version = VERSIONS[0]
             target = TARGETS[0]
             bins = ["rg" if proj == "ripgrep" else proj]
-            build_and_copy_to_target(
-                base_dir / proj, version, target, mode, bins, binaries
-            )
+            proj_dir = base_dir / proj
+
+            # Reset repo
+            subprocess.check_call(["git", "reset", "--hard"], cwd=proj_dir)
+
+            toml_path = proj_dir / "Cargo.toml"
+            if proj in special_toml_paths:
+                toml_path = proj_dir / special_toml_paths[proj]
+
+            # Remove path dependencies (so crates.io versions get used)
+            # NOTE: We do this since we want to evaluate how well we can recognize functions in
+            #       dependencies and local path dependencies can't be recognized. On the other hand
+            #       if the final crate is just a thin facade for a dependency which contains most of
+            #       the actual implementation this will tell us nothing...
+            f = TOMLFile(toml_path)
+            cargo_toml = f.read()
+            for k, v in cargo_toml["dependencies"].items():
+                if "version" in v and "path" in v:
+                    del v["path"]
+                    print(f"Removed path dependency on crate {k}.")
+            f.write(cargo_toml)
+
+            build_and_copy_to_target(proj_dir, version, target, mode, bins, binaries)
 
 
 # NOTE: Binaries built in a Windows VM
@@ -202,7 +227,9 @@ def prepare_toolchains():
     ]
 
     # Install missing versions
-    missing_versions = (set(VERSIONS) | set(VERSIONS_UNIQUENESS)).difference(installed_versions)
+    missing_versions = (set(VERSIONS) | set(VERSIONS_UNIQUENESS)).difference(
+        installed_versions
+    )
     for version in missing_versions:
         subprocess.check_output(
             ["rustup", "toolchain", "install", version, "--profile", "minimal"]
