@@ -87,6 +87,7 @@ for unstripped, stripped in binaries.items():
         wrong = 0
         missed = 0
         total = 0
+        unknown = 0
         for addr, real_name in reference.items():
             total += 1
             if addr in matched:
@@ -106,7 +107,9 @@ for unstripped, stripped in binaries.items():
                 )
 
                 # Sometimes symbols are missing even in the unstripped binary
-                if (
+                if real_name.startswith("sub_") and matched_name.startswith("sub_"):
+                    unknown += 1
+                elif (
                     real_demangled == matched_demangled
                     or "__" + real_demangled == matched_demangled
                     or (
@@ -138,7 +141,7 @@ for unstripped, stripped in binaries.items():
                 pass
 
         print(
-            f"  {ok + different_hash + sig_collision} / {total} (ok: {ok}, different_hash: {different_hash}, sig_collision: {sig_collision}, wrong: {wrong}, missed: {missed})"
+            f"  {ok + different_hash + sig_collision} / {total} (ok: {ok}, different_hash: {different_hash}, sig_collision: {sig_collision}, wrong: {wrong}, missed: {missed}, unknown: {unknown})"
         )
     else:
         with open(f"{out_path}.matched") as f:
