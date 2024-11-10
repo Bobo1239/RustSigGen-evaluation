@@ -8,10 +8,14 @@ dependencies = [
     "tomlkit>=0.13.2",
     # Only needed since IDA now picks up our venv and our plugin needs qasync...
     "qasync>=0.27.1",
+    # We use idalib for our signature uniqueness evaluation
+    "idapro",
 ]
 
 [tool.uv.sources]
 rustc_demangle_py = { workspace = true }
+# NOTE: We expect a symlink to `/path/to/ida-pro-9.0/idalib/python` at `idalib`
+idapro = { path = "idalib" }
 
 [tool.uv.workspace]
 members = ["rustc_demangle_py"]

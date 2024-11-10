@@ -30,7 +30,17 @@ TARGETS = [
 ]
 VERSIONS = ["1.80.1", "1.79.0", "beta-2024-06-11", "nightly-2024-06-11"]
 
-VERSIONS_UNIQUENESS = ["1.80.1", "1.80.0", "1.79.0", "1.78.0", "1.77.2"]
+VERSIONS_UNIQUENESS = [
+    "1.82.0",
+    "1.81.0",
+    "1.80.1",
+    "1.80.0",
+    "1.79.0",
+    "1.78.0",
+    "1.77.2",
+    "1.77.1",
+    "1.77.0",
+]
 BIN_UNIQUENESS = "empty"
 
 
@@ -97,10 +107,9 @@ def build_examples(binaries):
 
 def build_examples_uniqueness(binaries):
     for version in VERSIONS_UNIQUENESS:
-        for mode in ["debug", "release"]:
-            build_and_copy_to_target(
-                Path("examples"), version, TARGETS[0], mode, [BIN_UNIQUENESS], binaries
-            )
+        build_and_copy_to_target(
+            Path("examples"), version, TARGETS[0], "release", [BIN_UNIQUENESS], binaries
+        )
 
 
 def build_oss_projects(binaries):

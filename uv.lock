@@ -105,6 +105,11 @@ wheels = [
 ]
 
 [[package]]
+name = "idapro"
+version = "0.0.1"
+source = { directory = "idalib" }
+
+[[package]]
 name = "idna"
 version = "3.8"
 source = { registry = "https://pypi.org/simple" }
@@ -187,6 +192,7 @@ name = "samples"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "idapro" },
     { name = "pyzipper" },
     { name = "qasync" },
     { name = "requests" },
@@ -196,6 +202,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "idapro", directory = "idalib" },
     { name = "pyzipper", specifier = ">=0.3.6" },
     { name = "qasync", specifier = ">=0.27.1" },
     { name = "requests", specifier = ">=2.32.3" },

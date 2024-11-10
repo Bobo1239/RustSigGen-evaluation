@@ -6,6 +6,9 @@ import json
 
 # NOTE: This assumes IDA Pro 9.0 (so the binary is just called `ida`)
 
+# TODO: Would be cool to leverage the new idalib for this. But need to make plugin work optionally
+#       without QT event loop.
+
 TARGET_PATH = Path("target")
 EVALUATION_PATH = TARGET_PATH / "evaluation"
 
