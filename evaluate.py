@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
-import subprocess
 import json
+import subprocess
+from collections import ChainMap
+from pathlib import Path
 
 # NOTE: This assumes IDA Pro 9.0 (so the binary is just called `ida`)
 
@@ -16,6 +17,7 @@ IDA_SCRIPT_PATH = Path(__file__).parent / "ida_scripts" / "get_symbols.py"
 
 with open(TARGET_PATH / "binaries.json") as f:
     binaries = json.loads(f.read())
+    binaries = ChainMap(*[binaries[k] for k in binaries.keys() if k != "uniqueness"])
 
 for unstripped, stripped in binaries.items():
     print(unstripped)

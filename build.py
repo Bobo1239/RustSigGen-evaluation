@@ -87,7 +87,8 @@ def build_and_copy_to_target(crate_dir, version, target, mode, bins, binaries):
             binaries[out_path] = out_path_stripped
 
 
-def build_examples(binaries):
+def build_examples():
+    binaries = {}
     examples_dir = Path("examples")
     metadata_json = subprocess.check_output(
         ["cargo", "metadata", "--format-version", "1"],
@@ -103,16 +104,20 @@ def build_examples(binaries):
                 build_and_copy_to_target(
                     examples_dir, version, target, mode, bins, binaries
                 )
+    return binaries
 
 
-def build_examples_uniqueness(binaries):
+def build_examples_uniqueness():
+    binaries = {}
     for version in VERSIONS_UNIQUENESS:
         build_and_copy_to_target(
             Path("examples"), version, TARGETS[0], "release", [BIN_UNIQUENESS], binaries
         )
+    return binaries
 
 
-def build_oss_projects(binaries):
+def build_oss_projects():
+    binaries = {}
     base_dir = Path("oss_projects")
     projects = [p.name for p in base_dir.glob("*")]
     print("OSS Projects:", projects)
@@ -148,10 +153,12 @@ def build_oss_projects(binaries):
             f.write(cargo_toml)
 
             build_and_copy_to_target(proj_dir, version, target, mode, bins, binaries)
+    return binaries
 
 
 # NOTE: Binaries built in a Windows VM
-def copy_real_windows_binaries(binaries):
+def copy_real_windows_binaries():
+    binaries = {}
     metadata_json = subprocess.check_output(
         ["cargo", "metadata", "--format-version", "1"],
         cwd="examples",
@@ -182,9 +189,10 @@ def copy_real_windows_binaries(binaries):
             shutil.copy(in_path, out_path)
             shutil.copy(in_path.with_suffix(".pdb"), out_path.with_suffix(".pdb"))
             binaries[out_path] = out_path.with_suffix(".pdb")
+    return binaries
 
 
-def get_malware_samples(binaries):
+def get_malware_samples():
     # https://github.com/cxiao/rust-malware-gallery
     # NOTE: Sources to consider: https://bazaar.abuse.ch; https://malshare.com
     # TODO: Add comments about which target each sample uses
@@ -212,6 +220,7 @@ def get_malware_samples(binaries):
     ]
     ZIP_PASSWORD = b"infected"
 
+    binaries = {}
     for hash, name in MALWARE:
         out_path = TARGET_PATH / "malware" / f"{name}.do_not_exec"
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -230,6 +239,7 @@ def get_malware_samples(binaries):
             with open(out_path, "wb") as f:
                 extraceted_bytes = zip_file.read(zip_file.filelist[0], pwd=ZIP_PASSWORD)
                 f.write(extraceted_bytes)
+    return binaries
 
 
 def prepare_toolchains():
@@ -268,19 +278,21 @@ prepare_toolchains()
 
 # TODO: Other way around would be better since we don't always have an unstripped bin
 # Map: unstripped bin -> stripped bin
-binaries = {}
-build_examples(binaries)
-build_oss_projects(binaries)
-copy_real_windows_binaries(binaries)
-get_malware_samples(binaries)
+categories = {
+    "examples": build_examples(),
+    "real_windows": copy_real_windows_binaries(),
+    "oss_projects": build_oss_projects(),
+    "malware_samples": get_malware_samples(),
+    "uniqueness": build_examples_uniqueness(),
+}
+
+json_struct = {}
+total = 0
+for category, binaries in categories.items():
+    json_struct[category] = {str(k): str(v) for k, v in binaries.items()}
+    print(f"{category}: {len(binaries)} binaries")
+    total += len(binaries)
+print(f"Total: {total} binaries")
 
 with open(TARGET_PATH / "binaries.json", "w") as f:
-    f.write(json.dumps({str(k): str(v) for k, v in binaries.items()}))
-print(f"Built {len(binaries)} binaries")
-
-binaries_uniqueness = {}
-build_examples_uniqueness(binaries_uniqueness)
-
-with open(TARGET_PATH / "binaries_uniqueness.json", "w") as f:
-    f.write(json.dumps({str(k): str(v) for k, v in binaries_uniqueness.items()}))
-print(f"Built {len(binaries_uniqueness)} binaries (uniqueness)")
+    f.write(json.dumps(json_struct))

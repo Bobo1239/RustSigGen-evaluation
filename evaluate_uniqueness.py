@@ -50,8 +50,9 @@ def apply_sig_file(sig_file_name):
     return match_count
 
 
-with open(TARGET_PATH / "binaries_uniqueness.json") as f:
+with open(TARGET_PATH / "binaries.json") as f:
     binaries = json.loads(f.read())
+    binaries = binaries["uniqueness"]
 
 if len(list(SIGNATURES_OUT_PATH.glob("*.sig"))) < len(binaries):
     for unstripped, stripped in binaries.items():
@@ -62,8 +63,10 @@ if len(list(SIGNATURES_OUT_PATH.glob("*.sig"))) < len(binaries):
                 "signature_generator",
                 "-f",
                 str(FLAIR_PATH),
-                stripped,
+                "-o",
                 str(SIGNATURES_OUT_PATH),
+                "std",
+                stripped,
             ],
         )
 sigs = sorted(list(SIGNATURES_OUT_PATH.glob("*.sig")))

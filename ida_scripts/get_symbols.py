@@ -1,5 +1,6 @@
 import json
 import sys
+from pathlib import Path
 
 import ida_auto
 import ida_funcs
@@ -18,12 +19,13 @@ import idc
 if len(idc.ARGV) > 1:
     # Batch mode
     f = open(idc.ARGV[1], "w")
-    # TODO: Another mode: force use sig
     do_matching = idc.ARGV[2] == "match"
+    additional_sigs = idc.ARGV[3] if 3 < len(idc.ARGV) else None
 else:
     # Interactive mode
     f = sys.stdout
     do_matching = True
+    additional_sigs = None
 
 
 def log(msg):
@@ -79,6 +81,10 @@ class IdpHook(ida_idp.IDP_Hooks):
 
 
 # log(ida_nalt.get_input_file_path())
+
+if do_matching and additional_sigs:
+    for sig in Path(additional_sigs).glob("*.sig"):
+        ida_funcs.plan_to_apply_idasgn(str(sig))
 
 if do_matching:
     idp_hook = IdpHook()

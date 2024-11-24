@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from collections import ChainMap
 from pathlib import Path
 import json
 import rustc_demangle_py
@@ -40,6 +41,7 @@ ALLOWED_ALIASES = {
 
 with open(TARGET_PATH / "binaries.json") as f:
     binaries = json.loads(f.read())
+    binaries = ChainMap(*[binaries[k] for k in binaries.keys() if k != "uniqueness"])
 
 for unstripped, stripped in binaries.items():
     # TODO: Make this filterable via CLI arg (supply regex?)
