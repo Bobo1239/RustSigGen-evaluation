@@ -15,8 +15,12 @@ ln -s /path/to/ida-pro-9.0/idalib/python idalib
 
 ```bash
 uv run build.py
-uv run evaluate.py
-uv run summary.py
+
+uv run evaluate_std.py
+uv run summary.py std
+
+uv run evaluate_crates.py
+uv run summary.py crates
 ```
 
 ```bash

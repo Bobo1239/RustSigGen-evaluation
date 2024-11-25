@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import argparse
+import json
+import re
 from collections import ChainMap
 from pathlib import Path
-import json
+
 import rustc_demangle_py
 
 TARGET_PATH = Path("target")
@@ -39,37 +42,40 @@ ALLOWED_ALIASES = {
     "panic_unwind::__rust_start_panic": "__rust_start_panic",
 }
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "mode", choices=["std", "crates"], help="mode, either std or crates"
+)
+parser.add_argument(
+    "filter", nargs="?", help="optional regex to filter which binaries to consider"
+)
+args = parser.parse_args()
+
 with open(TARGET_PATH / "binaries.json") as f:
     binaries = json.loads(f.read())
-    binaries = ChainMap(*[binaries[k] for k in binaries.keys() if k != "uniqueness"])
+
+match args.mode:
+    case "std":
+        k_filter = [k for k in binaries.keys() if k != "uniqueness"]
+        matched_extension = "matched"
+    case "crates":
+        k_filter = ["oss_projects", "malware_samples"]
+        matched_extension = "matched_with_crates"
+binaries = ChainMap(*[binaries[k] for k in binaries.keys() if k in k_filter])
+
+
+def remove_number_suffix(symbol: str):
+    if re.match(r"(sub|unknown_libname)_\d+$", symbol):
+        return symbol
+    else:
+        return re.sub(r"_\d+$", "", symbol)
+
 
 for unstripped, stripped in binaries.items():
-    # TODO: Make this filterable via CLI arg (supply regex?)
-    # if "empty" not in unstripped:
-    #     continue
-    # if (
-    #     unstripped != "target/1.79.0/x86_64-unknown-linux-gnu/debug/empty"
-    #     and unstripped
-    #     != "target/nightly-2024-06-11/x86_64-unknown-linux-gnu/debug/empty"
-    # ):
-    #     continue
-    # if (
-    #     unstripped
-    #     != "target/nightly-2024-06-11/x86_64-pc-windows-msvc/release/hello_world.exe"
-    # ):
-    #     continue
-    # if unstripped != "target/nightly-2024-06-11/x86_64-unknown-linux-gnu/release/empty":
-    #     continue
-    # if "rg.exe" not in unstripped or ("real_msvc" not in unstripped and "1.80.0" not in unstripped) or "gnu" in unstripped:
-    #     continue
-    # if "spica" not in unstripped:
-    #     continue
-    # if unstripped != "target/nightly/x86_64-pc-windows-gnu/release/empty.exe":
-    #     continue
-    # if unstripped != "target/1.80.0/x86_64-pc-windows-gnu/release/empty.exe":
-    #     continue
-    # if unstripped != "target/nightly/x86_64-unknown-linux-gnu/debug/empty":
-    #     continue
+    if args.filter:
+        if not re.search(args.filter, unstripped):
+            continue
+
     print(unstripped)
     is_msvc = True if stripped.endswith(".pdb") else False
 
@@ -80,7 +86,7 @@ for unstripped, stripped in binaries.items():
     if unstripped != stripped:
         with open(f"{out_path}.reference") as f:
             reference = json.load(f)
-        with open(f"{out_path}.matched") as f:
+        with open(f"{out_path}.{matched_extension}") as f:
             matched = json.load(f)
 
         ok = 0
@@ -93,16 +99,23 @@ for unstripped, stripped in binaries.items():
         for addr, real_name in reference.items():
             total += 1
             if addr in matched:
-                real_name = real_name.strip("_0")
-                matched_name = matched[addr].strip("_0")
+                # Strip trailing _0, _1, ... which gets added by IDA (I believe since the same
+                # signature is in multiple signature libraries?) We need this since it messes up the
+                # demangler and it doesn't matter to our goal. Also strip out leading/trailing `_`
+                # which don't matter and are sometimes different between real and matched name...
+                real_name = remove_number_suffix(real_name).strip("_")
+                matched_name = remove_number_suffix(matched[addr]).strip("_")
 
+                # Demangle
                 real_demangled = rustc_demangle_py.demangle(real_name)
                 matched_demangled = rustc_demangle_py.demangle(matched_name)
 
                 if matched_name.startswith("?"):
+                    # MSVC symbol mangling
                     real_demangled = rustc_demangle_py.demangle_msvc(real_name)
                     matched_demangled = rustc_demangle_py.demangle_msvc(matched_name)
 
+                # Demangle without function hash suffix
                 real_demangled_no_hash = rustc_demangle_py.demangle_no_hash(real_name)
                 matched_demangled_no_hash = rustc_demangle_py.demangle_no_hash(
                     matched_name
@@ -146,8 +159,11 @@ for unstripped, stripped in binaries.items():
             f"  {ok + different_hash + sig_collision} / {total} (ok: {ok}, different_hash: {different_hash}, sig_collision: {sig_collision}, wrong: {wrong}, missed: {missed}, unknown: {unknown})"
         )
     else:
-        with open(f"{out_path}.matched") as f:
-            matched = json.load(f)
+        try:
+            with open(f"{out_path}.{matched_extension}") as f:
+                matched = json.load(f)
+        except FileNotFoundError:
+            continue
 
         total = 0
         missed = 0
