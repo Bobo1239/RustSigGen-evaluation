@@ -41,7 +41,7 @@ VERSIONS_UNIQUENESS = [
     "1.77.1",
     "1.77.0",
 ]
-BIN_UNIQUENESS = "empty"
+BIN_UNIQUENESS = "hello_world"
 
 
 def build_and_copy_to_target(crate_dir, version, target, mode, bins, binaries):
@@ -280,7 +280,9 @@ prepare_toolchains()
 # Map: unstripped bin -> stripped bin
 categories = {
     "examples": build_examples(),
-    "real_windows": copy_real_windows_binaries(),
+    # NOTE: Disabled since the binaries need updating and there's no good way to automate this
+    #       process; The results are effectively the same as with cargo-xwin anyways...
+    # "real_windows": copy_real_windows_binaries(),
     "oss_projects": build_oss_projects(),
     "malware_samples": get_malware_samples(),
     "uniqueness": build_examples_uniqueness(),
