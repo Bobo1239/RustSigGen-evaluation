@@ -71,6 +71,10 @@ def remove_number_suffix(symbol: str):
         return re.sub(r"_\d+$", "", symbol)
 
 
+def remove_at_suffix(symbol: str):
+    return re.sub(r"@\d+$", "", symbol)
+
+
 for unstripped, stripped in binaries.items():
     if args.filter:
         if not re.search(args.filter, unstripped):
@@ -114,6 +118,11 @@ for unstripped, stripped in binaries.items():
                     # MSVC symbol mangling
                     real_demangled = rustc_demangle_py.demangle_msvc(real_name)
                     matched_demangled = rustc_demangle_py.demangle_msvc(matched_name)
+
+                # Remove trailing `@n` suffix which gets added by IDA for i686 binaries (ref:
+                # https://stackoverflow.com/a/68767175)
+                real_demangled = remove_at_suffix(real_demangled)
+                matched_demangled = remove_at_suffix(matched_demangled)
 
                 # Demangle without function hash suffix
                 real_demangled_no_hash = rustc_demangle_py.demangle_no_hash(real_name)
