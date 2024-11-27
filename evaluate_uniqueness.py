@@ -1,42 +1,27 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
-import subprocess
 import json
+import os
+import subprocess
+from pathlib import Path
 
 import idapro
-import ida_undo
-import ida_idp
-import ida_funcs
 import ida_auto
+import ida_funcs
+import ida_segment
+import ida_undo
+import idautils
+
+from shared import FLAIR_PATH, TARGET_PATH, THESIS_DATA_PATH
 
 # NOTE: `signature_generator` needs to be available in $PATH
 
-# TODO: Meh...
-FLAIR_PATH = Path("~/master_thesis/ida/flair90/").expanduser()
-
-TARGET_PATH = Path("target")
 EVALUATION_PATH = TARGET_PATH / "evaluation"
 SIGNATURES_OUT_PATH = TARGET_PATH / "uniqueness_sigs"
 
 
-class sig_hooks_t(ida_idp.IDB_Hooks):
-    def __init__(self):
-        ida_idp.IDB_Hooks.__init__(self)
-        self.matched_funcs = set()
-
-    def func_added(self, pfn):
-        self.matched_funcs.add(pfn.start_ea)
-
-    def func_updated(self, pfn):
-        self.matched_funcs.add(pfn.start_ea)
-
-
 # Adapted from idalib's idacli.py example
 def apply_sig_file(sig_file_name):
-    sig_hook = sig_hooks_t()
-    sig_hook.hook()
-
     ida_funcs.plan_to_apply_idasgn(sig_file_name)
     ida_auto.auto_wait()
 
@@ -82,12 +67,22 @@ for i in range(len(bins_stripped)):
     versions.append(bin_ver)
 
 matrix = []
+total_functions = []
 for binary in bins_stripped:
     print(binary)
     row = []
 
     # Open database and wait for auto-analysis
     idapro.open_database(binary, True)
+
+    # Get total number of functions
+    total = 0
+    for ea in idautils.Functions():
+        # Ignore imports; only works properly for Linux which suffices here
+        if ida_segment.get_segm_name(ida_segment.getseg(ea)) == "extern":
+            continue
+        total += 1
+    total_functions.append(total)
 
     for sig in sigs:
         assert ida_undo.create_undo_point(b"pre_sig")
@@ -100,5 +95,14 @@ for binary in bins_stripped:
     # Close database without saving
     idapro.close_database(False)
 
-print(versions)
-print(matrix)
+os.makedirs(THESIS_DATA_PATH)
+with open(THESIS_DATA_PATH / "uniqueness.json", "w") as f:
+    f.write(
+        json.dumps(
+            {
+                "versions": versions,
+                "total_functions": total_functions,
+                "matrix": matrix,
+            }
+        )
+    )

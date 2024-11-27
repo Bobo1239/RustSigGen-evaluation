@@ -11,10 +11,10 @@ import requests
 from pyzipper import AESZipFile
 from tomlkit.toml_file import TOMLFile
 
+from shared import TARGET_PATH
+
 # NOTE: Need to use git version of cargo-xwin until there's a release with https://github.com/rust-cross/cargo-xwin/commit/13af95154fce77793001b29b8afc06b73dd0c879
 #       (`cargo install --git https://github.com/rust-cross/cargo-xwin.git cargo-xwin`)
-
-TARGET_PATH = Path("target")
 
 # NOTE: The first target/version will be used for builds which don't cover the whole matrix
 # NOTE: The beta release is the first one for Rust 1.80 (which was eventually released 2024-07-25)
@@ -40,6 +40,16 @@ VERSIONS_UNIQUENESS = [
     "1.77.2",
     "1.77.1",
     "1.77.0",
+    "1.76.0",
+    "1.75.0",
+    "1.74.1",
+    "1.74.0",
+    "1.73.0",
+    "1.72.1",
+    "1.72.0",
+    "1.71.1",
+    "1.71.0",
+    "1.70.0",
 ]
 BIN_UNIQUENESS = "hello_world"
 

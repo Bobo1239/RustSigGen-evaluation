@@ -11,6 +11,7 @@
 ```bash
 # python /path/to/ida-pro-9.0/idalib/python/py-activate-idalib.py
 ln -s /path/to/ida-pro-9.0/idalib/python idalib
+# Adjust `FLAIR_PATH` in shared.py
 ```
 
 ```bash

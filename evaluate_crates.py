@@ -5,15 +5,13 @@ from pathlib import Path
 import subprocess
 import json
 
+from shared import TARGET_PATH, FLAIR_PATH
+
 # NOTE: This assumes IDA Pro 9.0 (so the binary is just called `ida`)
 
 # TODO: Would be cool to leverage the new idalib for this. But need to make plugin work optionally
 #       without QT event loop.
 
-# TODO: Meh...
-FLAIR_PATH = Path("~/master_thesis/ida/flair90/").expanduser()
-
-TARGET_PATH = Path("target")
 EVALUATION_PATH = TARGET_PATH / "evaluation"
 SIGNATURES_PATH = TARGET_PATH / "crate_sigs"
 
