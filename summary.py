@@ -89,9 +89,11 @@ for unstripped, stripped in binaries.items():
 
     if unstripped != stripped:
         with open(f"{out_path}.reference") as f:
-            reference = json.load(f)
+            f = f.read().splitlines()
+            reference = json.loads(f[0])
         with open(f"{out_path}.{matched_extension}") as f:
-            matched = json.load(f)
+            f = f.read().splitlines()
+            matched = json.loads(f[0])
 
         ok = 0
         different_hash = 0
@@ -170,7 +172,9 @@ for unstripped, stripped in binaries.items():
     else:
         try:
             with open(f"{out_path}.{matched_extension}") as f:
-                matched = json.load(f)
+                f = f.read().splitlines()
+                matched = json.loads(f[0])
+                matched_lib_funcs = int(f[1])
         except FileNotFoundError:
             continue
 
@@ -185,3 +189,4 @@ for unstripped, stripped in binaries.items():
                 ok += 1
 
         print(f"  {ok} / {total} (no reference symbols)")
+        print(f"  Functions marked as library functions: {matched_lib_funcs}")

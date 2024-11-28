@@ -19,10 +19,13 @@ IDA_SCRIPT_PATH = Path(__file__).parent / "ida_scripts" / "get_symbols.py"
 
 # `--profile release` is default
 FLAGS = {
-    "target/malware/spica.exe.do_not_exec": "TODO",
+    "target/malware/spica.exe.do_not_exec": "--lto fat",
+    # NOTE: Skip the two blackcat samples since I'm unable to find decent compilation flags...
     "target/malware/blackcat.elf.do_not_exec": "TODO",
+    # Depends on `tui` whose default feature `termion` is not Windows-compatible so no dependency
+    # graph expansion happens...
     "target/malware/blackcat.exe.do_not_exec": "TODO",
-    "target/malware/rustystealer.exe.do_not_exec": "TODO",
+    "target/malware/rustystealer.exe.do_not_exec": "--lto fat",
     "target/malware/krustyloader.elf.do_not_exec": "--opt-level z --lto fat --codegen-units 1",
     "target/1.80.1/x86_64-unknown-linux-gnu/debug/rg": "--profile dev",
     "target/1.80.1/x86_64-unknown-linux-gnu/release/rg": "",
@@ -45,7 +48,6 @@ with open(TARGET_PATH / "binaries.json") as f:
         assert b in FLAGS
 
 for unstripped, stripped in binaries.items():
-    # FIXME
     if FLAGS[unstripped] == "TODO":
         continue
 

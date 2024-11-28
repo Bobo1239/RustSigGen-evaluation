@@ -59,6 +59,18 @@ def get_all_functions():
     return ret
 
 
+def get_number_of_lib_functions():
+    n = 0
+    for ea in idautils.Functions():
+        # Ignore imports (Linux)
+        if ida_segment.get_segm_name(ida_segment.getseg(ea)) == "extern":
+            continue
+
+        if ida_funcs.get_func(ea).flags & ida_funcs.FUNC_LIB != 0:
+            n += 1
+    return n
+
+
 class IdpHook(ida_idp.IDP_Hooks):
     def __init__(self):
         super().__init__()
@@ -75,6 +87,10 @@ class IdpHook(ida_idp.IDP_Hooks):
             if typee == ida_auto.AU_CHLB:  # load signature file
                 after = get_all_functions()
                 log(json.dumps(after))
+                # NOTE: We also log out this since we're running into an IDA/FLAIR bug where
+                #       recognized functions don't get renamed and stay named as `sub_...` (probably
+                #       related to the strange singular signature conflicts...)
+                log(str(get_number_of_lib_functions()))
                 exit_if_batchmode()
                 self.unhook()
         return 0
