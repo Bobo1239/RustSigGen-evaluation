@@ -17,8 +17,6 @@ from shared import TARGET_PATH
 #       (`cargo install --git https://github.com/rust-cross/cargo-xwin.git cargo-xwin`)
 
 # NOTE: The first target/version will be used for builds which don't cover the whole matrix
-# NOTE: The beta release is the first one for Rust 1.80 (which was eventually released 2024-07-25)
-#       (see https://releases.rs)
 TARGETS = [
     "x86_64-unknown-linux-gnu",
     # NOTE: MUSL is currently always statically links the libc but this should change in the future: https://github.com/rust-lang/compiler-team/issues/422
@@ -28,7 +26,9 @@ TARGETS = [
     "i686-pc-windows-msvc",
     "i686-pc-windows-gnu",
 ]
-VERSIONS = ["1.80.1", "1.79.0", "beta-2024-06-11", "nightly-2024-06-11"]
+# NOTE: The beta and nightly releases correspond to the eventual 1.82 release.
+#       (see https://releases.rs)
+VERSIONS = ["1.82.0", "1.60.0", "beta-2024-09-04", "nightly-2024-08-30"]
 
 VERSIONS_UNIQUENESS = [
     "1.82.0",
@@ -180,7 +180,6 @@ def copy_real_windows_binaries():
         for binary in bins:
             common = f"{mode}/{binary}.exe"
             in_path = Path("prebuilt_binaries") / "real_windows" / "examples" / common
-            # TODO: Update Windows binaries to 1.80.1
             # NOTE: real_windows used Rust 1.80.0
             out_path = TARGET_PATH / "1.80.0" / "real_windows" / common
 

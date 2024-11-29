@@ -27,12 +27,12 @@ FLAGS = {
     "target/malware/blackcat.exe.do_not_exec": "TODO",
     "target/malware/rustystealer.exe.do_not_exec": "--lto fat",
     "target/malware/krustyloader.elf.do_not_exec": "--opt-level z --lto fat --codegen-units 1",
-    "target/1.80.1/x86_64-unknown-linux-gnu/debug/rg": "--profile dev",
-    "target/1.80.1/x86_64-unknown-linux-gnu/release/rg": "",
-    "target/1.80.1/x86_64-unknown-linux-gnu/debug/just": "--profile dev",
-    "target/1.80.1/x86_64-unknown-linux-gnu/release/just": "--lto fat --codegen-units 1",
-    "target/1.80.1/x86_64-unknown-linux-gnu/debug/resvg": "--profile dev",
-    "target/1.80.1/x86_64-unknown-linux-gnu/release/resvg": "",
+    "target/1.82.0/x86_64-unknown-linux-gnu/debug/rg": "--profile dev",
+    "target/1.82.0/x86_64-unknown-linux-gnu/release/rg": "",
+    "target/1.82.0/x86_64-unknown-linux-gnu/debug/just": "--profile dev",
+    "target/1.82.0/x86_64-unknown-linux-gnu/release/just": "--lto fat --codegen-units 1",
+    "target/1.82.0/x86_64-unknown-linux-gnu/debug/resvg": "--profile dev",
+    "target/1.82.0/x86_64-unknown-linux-gnu/release/resvg": "",
 }
 
 with open(TARGET_PATH / "binaries.json") as f:
@@ -45,7 +45,7 @@ with open(TARGET_PATH / "binaries.json") as f:
         ]
     )
     for b in binaries:
-        assert b in FLAGS
+        assert b in FLAGS, f"missing flags for {b}"
 
 for unstripped, stripped in binaries.items():
     if FLAGS[unstripped] == "TODO":
