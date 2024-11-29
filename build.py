@@ -117,6 +117,22 @@ def build_examples():
     return binaries
 
 
+def build_std_generic_example():
+    binaries = {}
+    examples_dir = Path("std_generic_example")
+    metadata_json = subprocess.check_output(
+        ["cargo", "metadata", "--format-version", "1"],
+        cwd=examples_dir,
+    )
+    metadata = json.loads(metadata_json.decode())
+    bins = [t["name"] for t in metadata["packages"][0]["targets"]]
+
+    build_and_copy_to_target(
+        examples_dir, VERSIONS[0], TARGETS[0], "debug", bins, binaries
+    )
+    return binaries
+
+
 def build_examples_uniqueness():
     binaries = {}
     for version in VERSIONS_UNIQUENESS:
@@ -307,3 +323,8 @@ print(f"Total: {total} binaries")
 
 with open(TARGET_PATH / "binaries.json", "w") as f:
     f.write(json.dumps(json_struct))
+
+# These are not part of the evalation and are just used as an example in the thesis
+std_generic_example = build_std_generic_example()
+print("std_generic_example:", [str(p) for p in std_generic_example.values()])
+# print("std_generic_example", str(build_std_generic_example()))
