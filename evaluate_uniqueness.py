@@ -95,7 +95,7 @@ for binary in bins_stripped:
     # Close database without saving
     idapro.close_database(False)
 
-os.makedirs(THESIS_DATA_PATH)
+os.makedirs(THESIS_DATA_PATH, exist_ok=True)
 with open(THESIS_DATA_PATH / "uniqueness.json", "w") as f:
     f.write(
         json.dumps(

@@ -28,7 +28,7 @@ TARGETS = [
 ]
 # NOTE: The beta and nightly releases correspond to the eventual 1.82 release.
 #       (see https://releases.rs)
-VERSIONS = ["1.82.0", "1.60.0", "beta-2024-09-04", "nightly-2024-08-30"]
+VERSIONS = ["1.82.0", "beta-2024-09-04", "nightly-2024-08-30", "1.60.0"]
 
 VERSIONS_UNIQUENESS = [
     "1.82.0",

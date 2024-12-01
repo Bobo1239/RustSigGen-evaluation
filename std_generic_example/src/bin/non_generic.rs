@@ -1,10 +1,10 @@
-use std::{path::Path, time::Instant};
+use std::{path::Path, time::Duration, time::Instant};
 
 fn main() {
-    let start = Instant::now();
+    let mut start = Instant::now();
     let path = Path::new("/some/path");
-    for c in path.components() {
-        println!("{:?}", c);
+    for _ in path.components() {
+        start -= Duration::from_secs(1);
     }
     println!("{:?}", start.elapsed());
 }
