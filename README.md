@@ -4,13 +4,13 @@
 - [`uv`](https://docs.astral.sh/uv/)
 - [`rustup`](https://rustup.rs/)
 - [`cargo-xwin`](https://github.com/rust-cross/cargo-xwin) (for cross-compilation of Windows binaries)
-- [`signature_generator`](TODO) (CLI version; `cargo install --path .` in signature_generator repository)
-- IDA Pro 9.0 (as `ida`) with Rust signature generation plugin
+- [`rust-sig-gen`] (CLI version)
+- IDA Pro 9.0 (as `ida`) with the RustSigGen plugin installed
 
 ## Instructions
-Setup `signature_generator` and IDA plugin:
+Setup `rust-sig-gen` and IDA plugin:
 ```bash
-cd /path/to/signature_generator
+cd /path/to/RustSigGen
 cargo install --path .
 just install-ida-plugin
 ```

@@ -14,7 +14,7 @@ import idautils
 
 from shared import FLAIR_PATH, TARGET_PATH, THESIS_DATA_PATH
 
-# NOTE: `signature_generator` needs to be available in $PATH
+# NOTE: `rust-sig-gen` needs to be available in $PATH
 
 EVALUATION_PATH = TARGET_PATH / "evaluation"
 SIGNATURES_OUT_PATH = TARGET_PATH / "uniqueness_sigs"
@@ -45,7 +45,7 @@ if len(list(SIGNATURES_OUT_PATH.glob("*.sig"))) < len(binaries):
 
         subprocess.check_output(
             [
-                "signature_generator",
+                "rust-sig-gen",
                 "-f",
                 str(FLAIR_PATH),
                 "-o",

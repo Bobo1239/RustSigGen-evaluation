@@ -81,7 +81,7 @@ for unstripped, stripped in binaries.items():
     if not sig_path.exists():
         subprocess.check_output(
             [
-                "signature_generator",
+                "rust-sig-gen",
                 "-f",
                 str(FLAIR_PATH),
                 "-o",
